@@ -1,4 +1,4 @@
-﻿using Catalog.Application.Interfaces;
+﻿using Catalog.Domain.Interfaces;
 using Catalog.Domain.Entities;
 
 namespace Catalog.Application.Services

@@ -1,6 +1,6 @@
 ﻿using Catalog.Domain.Entities;
 
-namespace Catalog.Application.Interfaces
+namespace Catalog.Domain.Interfaces
 {
     public interface ICategoryService
     {

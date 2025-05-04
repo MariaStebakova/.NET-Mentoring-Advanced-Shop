@@ -1,6 +1,6 @@
 ﻿using Catalog.Application.Services;
 using Catalog.Domain.Entities;
-using Catalog.Application.Interfaces;
+using Catalog.Domain.Interfaces;
 using Moq;
 using Xunit;
 

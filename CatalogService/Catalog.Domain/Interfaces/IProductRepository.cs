@@ -1,12 +1,12 @@
 ﻿using Catalog.Domain.Entities;
 
-namespace Catalog.Application.Interfaces
+namespace Catalog.Domain.Interfaces
 {
-    public interface IProductService
+    public interface IProductRepository
     {
-        Task<Product> GetByIdAsync(int id);
+        Task<Product?> GetByIdAsync(int id);
         Task<IEnumerable<Product>> GetAllAsync();
-        Task<Product> AddAsync(Product product);
+        Task AddAsync(Product product);
         Task UpdateAsync(Product product);
         Task DeleteAsync(int id);
     }
