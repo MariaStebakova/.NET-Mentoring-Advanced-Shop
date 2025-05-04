@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.Tests", "Catalog.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.Domain", "Catalog.Domain\Catalog.Domain.csproj", "{38436B83-F285-4B10-8F8C-36C8B159FAE6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.API", "Catalog.API\Catalog.API.csproj", "{7795137E-001E-4887-BFFB-E1D919076D04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{38436B83-F285-4B10-8F8C-36C8B159FAE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38436B83-F285-4B10-8F8C-36C8B159FAE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38436B83-F285-4B10-8F8C-36C8B159FAE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7795137E-001E-4887-BFFB-E1D919076D04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7795137E-001E-4887-BFFB-E1D919076D04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7795137E-001E-4887-BFFB-E1D919076D04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7795137E-001E-4887-BFFB-E1D919076D04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
