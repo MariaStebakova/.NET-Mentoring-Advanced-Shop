@@ -43,7 +43,9 @@ namespace CartService.Application.Services
         {
             var cart = await _cartRepository.GetCartAsync(cartId);
             if (cart == null)
-                return;
+            {
+                throw new InvalidOperationException("Cart not found");
+            }
 
             var existingItem = cart.Items.FirstOrDefault(i => i.Id == itemId);
             if (existingItem != null)
