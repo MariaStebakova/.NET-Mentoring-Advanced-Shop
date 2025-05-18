@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Models;
 using CartService.Application.Interfaces;
 using CartService.Infrastructure.Repositories;
+using CartService.Infrastructure.Messaging;
 
 namespace CartService.API;
 
@@ -19,7 +20,7 @@ public class Program
             return new CartRepository(connectionString, provider.GetRequiredService<ILogger<CartRepository>>());
         });
 
-        builder.Services.AddSingleton<ICartService, CartService.Application.Services.CartService>();
+        builder.Services.AddSingleton<ICartService, Application.Services.CartService>();
         builder.Services.AddLogging();
 
         builder.Services.AddControllers();
@@ -31,6 +32,8 @@ public class Program
             var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
+
+        builder.Services.AddHostedService<RabbitMqItemUpdateListener>();
 
         var app = builder.Build();
 

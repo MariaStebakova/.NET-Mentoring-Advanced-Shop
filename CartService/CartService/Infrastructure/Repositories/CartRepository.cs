@@ -45,5 +45,12 @@ namespace CartService.Infrastructure.Repositories
                 throw;
             }
         }
+
+        public async Task<IEnumerable<Cart>> GetAllCartsAsync()
+        {
+            using var db = new LiteDatabase(_connectionString);
+            var collection = db.GetCollection<Cart>("carts");
+            return collection.FindAll().ToList();
+        }
     }
 }

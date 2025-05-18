@@ -6,5 +6,6 @@ namespace CartService.Application.Interfaces
     {
         Task<Cart?> GetCartAsync(string cartId);
         Task SaveCartAsync(Cart cart);
+        Task<IEnumerable<Cart>> GetAllCartsAsync();
     }
 }

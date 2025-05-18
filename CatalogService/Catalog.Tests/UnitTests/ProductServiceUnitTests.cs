@@ -9,11 +9,12 @@ namespace Catalog.Tests.UnitTests
     public class ProductServiceUnitTests
     {
         private readonly Mock<IProductRepository> _mockRepo = new();
+        private readonly Mock<IMessagePublisher> _mockPublisher = new();
         private readonly ProductService _service;
 
         public ProductServiceUnitTests()
         {
-            _service = new ProductService(_mockRepo.Object);
+            _service = new ProductService(_mockRepo.Object, _mockPublisher.Object);
         }
 
         [Fact]

@@ -6,10 +6,12 @@ namespace Catalog.Application.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
+        private readonly IMessagePublisher _messagePublisher;
 
-        public ProductService(IProductRepository repository)
+        public ProductService(IProductRepository repository, IMessagePublisher messagePublisher)
         {
             _repository = repository;
+            _messagePublisher = messagePublisher;
         }
 
         public async Task<Product> GetByIdAsync(int id)
@@ -35,18 +37,29 @@ namespace Catalog.Application.Services
             return product;
         }
 
-        public async Task UpdateAsync(Product product)
+        public async Task UpdateAsync(Product updatedProduct)
         {
-            if (string.IsNullOrWhiteSpace(product.Name) || product.Name.Length > 50)
+            if (string.IsNullOrWhiteSpace(updatedProduct.Name) || updatedProduct.Name.Length > 50)
                 throw new ArgumentException("Invalid product name.");
-            if (product.Price <= 0)
+            if (updatedProduct.Price <= 0)
                 throw new ArgumentException("Price must be greater than zero.");
-            if (product.Amount < 0)
+            if (updatedProduct.Amount < 0)
                 throw new ArgumentException("Amount must be a positive integer.");
-            if (string.IsNullOrWhiteSpace(product.Currency))
+            if (string.IsNullOrWhiteSpace(updatedProduct.Currency))
                 throw new ArgumentException("Currency must be specified.");
 
-            await _repository.UpdateAsync(product);
+            await _repository.UpdateAsync(updatedProduct);
+
+            var message = new ProductUpdatedMessage
+            {
+                Id = updatedProduct.Id,
+                Name = updatedProduct.Name,
+                ImageUrl = updatedProduct.ImageUrl,
+                Price = updatedProduct.Price,
+                Amount = updatedProduct.Amount
+            };
+
+            await _messagePublisher.PublishProductUpdatedAsync(message);
         }
 
         public Task DeleteAsync(int id) => _repository.DeleteAsync(id);

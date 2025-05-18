@@ -5,6 +5,7 @@ using Catalog.Infrastructure.Data;
 using Catalog.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Catalog.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,10 @@ if (builder.Environment.EnvironmentName != "Testing")
     builder.Services.AddDbContext<CatalogDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("CatalogDb")));
 }
+
+var publisher = new RabbitMqMessagePublisher();
+await publisher.InitializeAsync();
+builder.Services.AddSingleton<IMessagePublisher>(publisher);
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -109,13 +114,13 @@ app.MapDelete("/api/categories/{id}", async (
 app.MapGet("/api/products", async (
     [FromServices] IProductService service,
     [FromQuery] int? categoryId,
-    [FromQuery] int page,
-    [FromQuery] int pageSize,
+    [FromQuery] int? page,
+    [FromQuery] int? pageSize,
     HttpContext http) =>
 {
     var all = await service.GetAllAsync();
     var filtered = categoryId.HasValue ? all.Where(p => p.CategoryId == categoryId) : all;
-    var paginated = filtered.Skip((page - 1) * pageSize).Take(pageSize);
+    var paginated = page.HasValue && pageSize.HasValue ? filtered.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value) : filtered;
 
     var result = paginated.Select(p => new
     {
