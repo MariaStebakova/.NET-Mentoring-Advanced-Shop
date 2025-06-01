@@ -5,6 +5,8 @@ using System.Net;
 using System.Net.Http.Json;
 using Xunit;
 using Catalog.Tests.ApiTests.Helpers;
+using CartService.Tests.ApiTests.Helpers;
+using System.Net.Http.Headers;
 
 namespace Catalog.Tests.ApiTests
 {
@@ -16,7 +18,8 @@ namespace Catalog.Tests.ApiTests
         public ProductApiTests(CustomWebApplicationFactory factory)
         {
             _client = factory.CreateClient();
-
+            var token = AuthenticationHelper.GetAccessTokenAsync().GetAwaiter().GetResult();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var scope = factory.Services.CreateScope();
             _dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
         }

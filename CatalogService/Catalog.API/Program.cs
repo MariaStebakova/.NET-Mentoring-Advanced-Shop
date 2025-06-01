@@ -6,6 +6,9 @@ using Catalog.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Catalog.Infrastructure.Messaging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,12 +27,28 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
+builder.Services.AddAuthentication().AddJwtBearer("Bearer", options =>
+    {
+        options.Authority = "http://localhost:8080/realms/MicroservicesRealm";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = false,
+            RoleClaimType = ClaimTypes.Role
+        };
+        options.RequireHttpsMetadata = false;
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 #region Categories API
-app.MapGet("/api/categories", async ([FromServices] ICategoryService service, HttpContext http) =>
+app.MapGet("/api/categories", [Authorize(Roles = "Manager,StoreCustomer")] async ([FromServices] ICategoryService service, HttpContext http) =>
 {
     var categories = await service.GetAllAsync();
     var result = categories.Select(c => new
@@ -50,7 +69,7 @@ app.MapGet("/api/categories", async ([FromServices] ICategoryService service, Ht
 .WithName("GetAllCategories")
 .Produces(200);
 
-app.MapPost("/api/categories", async ([FromServices] ICategoryService service, [FromBody] Category category) =>
+app.MapPost("/api/categories", [Authorize(Roles = "Manager")] async ([FromServices] ICategoryService service, [FromBody] Category category) =>
 {
     try
     {
@@ -65,7 +84,7 @@ app.MapPost("/api/categories", async ([FromServices] ICategoryService service, [
 .WithName("CreateCategory")
 .Produces<Category>(201);
 
-app.MapPut("/api/categories/{id}", async ([FromServices] ICategoryService service, [FromBody] Category category, int id) =>
+app.MapPut("/api/categories/{id}", [Authorize(Roles = "Manager")] async ([FromServices] ICategoryService service, [FromBody] Category category, int id) =>
 {
     try
     {
@@ -81,7 +100,7 @@ app.MapPut("/api/categories/{id}", async ([FromServices] ICategoryService servic
 .WithName("UpdateCategory")
 .Produces(204);
 
-app.MapDelete("/api/categories/{id}", async (
+app.MapDelete("/api/categories/{id}", [Authorize(Roles = "Manager")] async (
     [FromServices] ICategoryService categoryService,
     [FromServices] IProductService productService,
     int id) =>
@@ -111,7 +130,7 @@ app.MapDelete("/api/categories/{id}", async (
 #endregion
 
 #region Products API
-app.MapGet("/api/products", async (
+app.MapGet("/api/products", [Authorize(Roles = "Manager,StoreCustomer")] async (
     [FromServices] IProductService service,
     [FromQuery] int? categoryId,
     [FromQuery] int? page,
@@ -145,7 +164,7 @@ app.MapGet("/api/products", async (
 .WithName("GetProducts")
 .Produces(200);
 
-app.MapPost("/api/products", async ([FromServices] IProductService service, [FromBody] Product product) =>
+app.MapPost("/api/products", [Authorize(Roles = "Manager")] async ([FromServices] IProductService service, [FromBody] Product product) =>
 {
     try
     {
@@ -160,7 +179,7 @@ app.MapPost("/api/products", async ([FromServices] IProductService service, [Fro
 .WithName("CreateProduct")
 .Produces<Product>(201);
 
-app.MapPut("/api/products/{id}", async ([FromServices] IProductService service, [FromBody] Product product, int id) =>
+app.MapPut("/api/products/{id}", [Authorize(Roles = "Manager")] async ([FromServices] IProductService service, [FromBody] Product product, int id) =>
 {
     try
     {
@@ -176,7 +195,7 @@ app.MapPut("/api/products/{id}", async ([FromServices] IProductService service, 
 .WithName("UpdateProduct")
 .Produces(204);
 
-app.MapDelete("/api/products/{id}", async ([FromServices] IProductService service, int id) =>
+app.MapDelete("/api/products/{id}", [Authorize(Roles = "Manager")] async ([FromServices] IProductService service, int id) =>
 {
     try
     {

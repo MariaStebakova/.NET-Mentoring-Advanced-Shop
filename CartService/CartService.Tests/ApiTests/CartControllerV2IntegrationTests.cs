@@ -3,6 +3,7 @@ using CartService.Tests.ApiTests.Helpers;
 using System.Net.Http.Json;
 using System.Net;
 using LiteDB;
+using System.Net.Http.Headers;
 
 namespace CartService.Tests.ApiTests
 {
@@ -14,6 +15,8 @@ namespace CartService.Tests.ApiTests
         public CartControllerV2IntegrationTests(CustomWebApplicationFactory factory)
         {
             _client = factory.CreateClient();
+            var token = AuthenticationHelper.GetAccessTokenAsync().GetAwaiter().GetResult();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             _testDbPath = factory.TestDBFileName;
         }
 

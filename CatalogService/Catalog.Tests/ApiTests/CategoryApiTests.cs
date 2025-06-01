@@ -1,8 +1,10 @@
-﻿using Catalog.Domain.Entities;
+﻿using CartService.Tests.ApiTests.Helpers;
+using Catalog.Domain.Entities;
 using Catalog.Infrastructure.Data;
 using Catalog.Tests.ApiTests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Xunit;
 
@@ -16,7 +18,8 @@ namespace Catalog.Tests.ApiTests
         public CategoryApiTests(CustomWebApplicationFactory factory)
         {
             _client = factory.CreateClient();
-
+            var token = AuthenticationHelper.GetAccessTokenAsync().GetAwaiter().GetResult();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var scope = factory.Services.CreateScope();
             _dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
         }
