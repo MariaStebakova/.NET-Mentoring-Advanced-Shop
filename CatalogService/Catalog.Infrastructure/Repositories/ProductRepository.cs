@@ -1,6 +1,7 @@
-﻿using Catalog.Domain.Interfaces;
-using Catalog.Domain.Entities;
+﻿using Catalog.Domain.Entities;
+using Catalog.Domain.Interfaces;
 using Catalog.Infrastructure.Data;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Catalog.Infrastructure.Repositories

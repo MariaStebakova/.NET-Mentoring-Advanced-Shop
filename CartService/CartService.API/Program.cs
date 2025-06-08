@@ -1,26 +1,32 @@
-using Microsoft.OpenApi.Models;
-using CartService.Application.Interfaces;
-using CartService.Infrastructure.Repositories;
-using CartService.Infrastructure.Messaging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+
+using CartService.Application.Interfaces;
+using CartService.Infrastructure.Messaging;
+using CartService.Infrastructure.Repositories;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace CartService.API;
 
 public class Program
 {
+    private const string AuthScheme = "Bearer";
+
+    protected Program() { }
+
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        var connectionString = builder.Configuration.GetConnectionString("CartDatabase");
         builder.Services.AddSingleton<ICartRepository>(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            var connectionString = config.GetConnectionString("CartDatabase");
+            var connectionString = config.GetConnectionString("CartDatabase") 
+                ?? throw new InvalidOperationException("CartDatabase connection string is missing");
 
             return new CartRepository(connectionString, provider.GetRequiredService<ILogger<CartRepository>>());
         });
@@ -44,11 +50,11 @@ public class Program
             options.SwaggerDoc("v1", new OpenApiInfo { Title = "Cart API", Version = "v1" });
             options.SwaggerDoc("v2", new OpenApiInfo { Title = "Cart API", Version = "v2" });
 
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            options.AddSecurityDefinition(AuthScheme, new OpenApiSecurityScheme
             {
                 Name = "Authorization",
                 Type = SecuritySchemeType.Http,
-                Scheme = "Bearer",
+                Scheme = AuthScheme,
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
                 Description = "Enter JWT token"
@@ -62,7 +68,7 @@ public class Program
                         Reference = new OpenApiReference
                         {
                             Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
+                            Id = AuthScheme
                         }
                     },
                     Array.Empty<string>()
@@ -74,8 +80,8 @@ public class Program
 
         builder.Services.AddHostedService<RabbitMqItemUpdateListener>();
 
-        builder.Services.AddAuthentication("Bearer")
-            .AddJwtBearer("Bearer", options =>
+        builder.Services.AddAuthentication(AuthScheme)
+            .AddJwtBearer(AuthScheme, options =>
             {
                 options.Authority = "http://localhost:8080/realms/MicroservicesRealm";
                 options.TokenValidationParameters = new TokenValidationParameters

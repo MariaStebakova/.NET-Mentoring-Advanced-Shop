@@ -1,13 +1,12 @@
 ﻿using Catalog.Domain.Entities;
 
-namespace Catalog.Domain.Interfaces
+namespace Catalog.Domain.Interfaces;
+
+public interface ICategoryRepository
 {
-    public interface ICategoryRepository
-    {
-        Task<Category?> GetByIdAsync(int id);
-        Task<IEnumerable<Category>> GetAllAsync();
-        Task AddAsync(Category category);
-        Task UpdateAsync(Category category);
-        Task DeleteAsync(int id);
-    }
+    Task<Category?> GetByIdAsync(int id);
+    Task<IEnumerable<Category>> GetAllAsync();
+    Task AddAsync(Category category);
+    Task UpdateAsync(Category category);
+    Task DeleteAsync(int id);
 }

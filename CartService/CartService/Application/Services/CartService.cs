@@ -1,6 +1,7 @@
 ﻿using CartService.Application.Interfaces;
 using CartService.Domain.Entities;
 using CartService.Infrastructure.Messaging;
+
 using Microsoft.Extensions.Logging;
 
 namespace CartService.Application.Services
@@ -37,7 +38,7 @@ namespace CartService.Application.Services
             }
 
             await _cartRepository.SaveCartAsync(cart);
-            _logger.LogInformation($"Item {item.Id} added to cart {cartId}.");
+            _logger.LogInformation("Item {ItemId} added to cart {CartId}.", item.Id, cartId);
         }
 
         public async Task RemoveItemAsync(string cartId, int itemId)
@@ -57,7 +58,7 @@ namespace CartService.Application.Services
                     cart.Items.Remove(existingItem);
                 }
                 await _cartRepository.SaveCartAsync(cart);
-                _logger.LogInformation($"Item {itemId} quantity decreased in cart {cartId}.");
+                _logger.LogInformation("Item {ItemId} quantity decreased in cart {CartId}.", itemId, cartId);
             }
         }
 
@@ -79,14 +80,15 @@ namespace CartService.Application.Services
             if (productUpdate.Amount == 0)
             {
                 cart.Items.Remove(item);
-                _logger.LogInformation($"Removed item {item.Id} from cart {cart.Id}");
+                _logger.LogInformation("Removed item {ItemId} from cart {CartId}.", item.Id, cart.Id);
             }
             else
             {
                 if (item.Quantity > productUpdate.Amount)
                 {
                     item.Quantity = productUpdate.Amount;
-                    _logger.LogInformation($"Reduced quantity of item {item.Id} in cart {cart.Id} to {item.Quantity}");
+                    _logger.LogInformation("Reduced quantity of item {ItemId} in cart {CartId} to {Quantity}.",
+                        item.Id, cart.Id, item.Quantity);
                 }
                 item.Name = productUpdate.Name;
                 item.Price = productUpdate.Price;

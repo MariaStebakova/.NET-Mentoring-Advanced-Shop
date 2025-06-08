@@ -1,9 +1,8 @@
 ﻿using Catalog.Domain.Entities;
 
-namespace Catalog.Domain.Interfaces
+namespace Catalog.Domain.Interfaces;
+
+public interface IMessagePublisher
 {
-    public interface IMessagePublisher
-    {
-        Task PublishProductUpdatedAsync(ProductUpdatedMessage item);
-    }
+    Task PublishProductUpdatedAsync(ProductUpdatedMessage item);
 }

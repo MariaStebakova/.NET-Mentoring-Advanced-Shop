@@ -1,9 +1,11 @@
-﻿using CartService.Domain.Entities;
-using CartService.Tests.ApiTests.Helpers;
-using System.Net.Http.Json;
-using System.Net;
-using LiteDB;
+﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
+
+using CartService.Domain.Entities;
+using CartService.Tests.ApiTests.Helpers;
+
+using LiteDB;
 
 namespace CartService.Tests.ApiTests
 {

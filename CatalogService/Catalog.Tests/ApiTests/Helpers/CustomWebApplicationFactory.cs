@@ -1,4 +1,5 @@
 ﻿using Catalog.Infrastructure.Data;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;

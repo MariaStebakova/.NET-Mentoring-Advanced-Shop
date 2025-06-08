@@ -1,10 +1,13 @@
-﻿using CartService.Application.Interfaces;
+﻿using System.Text;
+using System.Text.Json;
+
+using CartService.Application.Interfaces;
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
-using System.Text.Json;
 
 namespace CartService.Infrastructure.Messaging
 {
@@ -59,14 +62,13 @@ namespace CartService.Infrastructure.Messaging
             {
                 try
                 {
-                    //throw new Exception("Simulated failure.");
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
                     var productUpdate = JsonSerializer.Deserialize<ProductUpdatedMessage>(message);
 
                     if (productUpdate != null)
                     {
-                        _logger.LogInformation($"Received product update: {productUpdate.Id} - {productUpdate.Name}");
+                        _logger.LogInformation("Received product update: {productUpdateId} - {productUpdateName}", productUpdate.Id, productUpdate.Name);
                         await _cartService.ApplyProductUpdate(productUpdate);
                     }
 

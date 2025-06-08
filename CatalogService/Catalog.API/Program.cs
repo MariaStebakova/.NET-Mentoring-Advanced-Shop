@@ -1,14 +1,15 @@
-using Catalog.Domain.Interfaces;
+using System.Security.Claims;
+
 using Catalog.Application.Services;
-using Catalog.Domain.Entities;
+using Catalog.Domain.Interfaces;
 using Catalog.Infrastructure.Data;
+using Catalog.Infrastructure.Messaging;
 using Catalog.Infrastructure.Repositories;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Catalog.Infrastructure.Messaging;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,118 +29,170 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddAuthentication().AddJwtBearer("Bearer", options =>
+{
+    options.Authority = "http://localhost:8080/realms/MicroservicesRealm";
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.Authority = "http://localhost:8080/realms/MicroservicesRealm";
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            RoleClaimType = ClaimTypes.Role
-        };
-        options.RequireHttpsMetadata = false;
-    });
+        ValidateAudience = false,
+        RoleClaimType = ClaimTypes.Role
+    };
+    options.RequireHttpsMetadata = false;
+});
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-#region Categories API
-app.MapGet("/api/categories", [Authorize(Roles = "Manager,StoreCustomer")] async ([FromServices] ICategoryService service, HttpContext http) =>
+MapCategoryEndpoints(app);
+MapProductEndpoints(app);
+
+await app.RunAsync();
+
+// CategoryEndpoints.cs
+static void MapCategoryEndpoints(WebApplication app)
 {
-    var categories = await service.GetAllAsync();
-    var result = categories.Select(c => new
+    app.MapGet("/api/categories", [Authorize(Roles = "Manager,StoreCustomer")] async (
+        [FromServices] ICategoryService service, HttpContext http) =>
     {
-        c.Id,
-        c.Name,
-        c.ImageUrl,
-        c.ParentCategoryId,
-        _links = new
+        var categories = await service.GetAllAsync();
+        var result = categories.Select(c => new
         {
-            self = new { href = $"{http.Request.Scheme}://{http.Request.Host}/api/categories/{c.Id}" },
-            update = new { href = $"{http.Request.Scheme}://{http.Request.Host}/api/categories/{c.Id}", method = "PUT" },
-            delete = new { href = $"{http.Request.Scheme}://{http.Request.Host}/api/categories/{c.Id}", method = "DELETE" }
+            c.Id,
+            c.Name,
+            c.ImageUrl,
+            c.ParentCategoryId,
+            _links = new
+            {
+                self = new { href = GetCategoryUrl(http, c.Id) },
+                update = new { href = GetCategoryUrl(http, c.Id), method = "PUT" },
+                delete = new { href = GetCategoryUrl(http, c.Id), method = "DELETE" }
+            }
+        });
+        return Results.Ok(result);
+    });
+
+    app.MapPost("/api/categories", [Authorize(Roles = "Manager")] async (
+        [FromServices] ICategoryService service, [FromBody] Catalog.Domain.Entities.Category category) =>
+    {
+        try
+        {
+            var result = await service.AddAsync(category);
+            return Results.Created($"/api/categories/{result.Id}", result);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
         }
     });
-    return Results.Ok(result);
-})
-.WithName("GetAllCategories")
-.Produces(200);
 
-app.MapPost("/api/categories", [Authorize(Roles = "Manager")] async ([FromServices] ICategoryService service, [FromBody] Category category) =>
-{
-    try
+    app.MapPut("/api/categories/{id}", [Authorize(Roles = "Manager")] async (
+        [FromServices] ICategoryService service, [FromBody] Catalog.Domain.Entities.Category category, int id) =>
     {
-        var result = await service.AddAsync(category);
-        return Results.Created($"/api/categories/{result.Id}", result);
-    }
-    catch (ArgumentException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-})
-.WithName("CreateCategory")
-.Produces<Category>(201);
+        try
+        {
+            category.Id = id;
+            await service.UpdateAsync(category);
+            return Results.NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    });
 
-app.MapPut("/api/categories/{id}", [Authorize(Roles = "Manager")] async ([FromServices] ICategoryService service, [FromBody] Category category, int id) =>
-{
-    try
+    app.MapDelete("/api/categories/{id}", [Authorize(Roles = "Manager")] async (
+        [FromServices] ICategoryService categoryService,
+        [FromServices] IProductService productService,
+        int id) =>
     {
-        category.Id = id;
-        await service.UpdateAsync(category);
+        try
+        {
+            var category = await categoryService.GetByIdAsync(id);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Results.NotFound(new { error = ex.Message });
+        }
+
+        var products = await productService.GetAllAsync();
+        var related = products.Where(p => p.CategoryId == id);
+        foreach (var product in related)
+        {
+            await productService.DeleteAsync(product.Id);
+        }
+
+        await categoryService.DeleteAsync(id);
         return Results.NoContent();
-    }
-    catch (ArgumentException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-})
-.WithName("UpdateCategory")
-.Produces(204);
+    });
+}
 
-app.MapDelete("/api/categories/{id}", [Authorize(Roles = "Manager")] async (
-    [FromServices] ICategoryService categoryService,
-    [FromServices] IProductService productService,
-    int id) =>
+// ProductEndpoints.cs
+static void MapProductEndpoints(WebApplication app)
 {
-    try
-    {
-        var category = await categoryService.GetByIdAsync(id);
-    }
-    catch (KeyNotFoundException ex)
-    {
-        return Results.NotFound(new { error = ex.Message });
-    }
+    app.MapGet("/api/products", GetProductsEndpoint);
 
-    var products = await productService.GetAllAsync();
-    var related = products.Where(p => p.CategoryId == id);
-    foreach (var product in related)
+    app.MapPost("/api/products", [Authorize(Roles = "Manager")] async (
+        [FromServices] IProductService service, [FromBody] Catalog.Domain.Entities.Product product) =>
     {
-        await productService.DeleteAsync(product.Id);
-    }
+        try
+        {
+            var result = await service.AddAsync(product);
+            return Results.Created($"/api/products/{result.Id}", result);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    });
 
-    await categoryService.DeleteAsync(id);
-    return Results.NoContent();
-})
-.WithName("DeleteCategoryAndProducts")
-.Produces(204)
-.Produces(404);
-#endregion
+    app.MapPut("/api/products/{id}", [Authorize(Roles = "Manager")] async (
+        [FromServices] IProductService service, [FromBody] Catalog.Domain.Entities.Product product, int id) =>
+    {
+        try
+        {
+            product.Id = id;
+            await service.UpdateAsync(product);
+            return Results.NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    });
 
-#region Products API
-app.MapGet("/api/products", [Authorize(Roles = "Manager,StoreCustomer")] async (
+    app.MapDelete("/api/products/{id}", [Authorize(Roles = "Manager")] async (
+        [FromServices] IProductService service, int id) =>
+    {
+        try
+        {
+            var _ = await service.GetByIdAsync(id);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Results.NotFound(new { error = ex.Message });
+        }
+
+        await service.DeleteAsync(id);
+        return Results.NoContent();
+    });
+}
+
+static async Task<IResult> GetProductsEndpoint(
     [FromServices] IProductService service,
     [FromQuery] int? categoryId,
     [FromQuery] int? page,
     [FromQuery] int? pageSize,
-    HttpContext http) =>
+    HttpContext http)
 {
     var all = await service.GetAllAsync();
     var filtered = categoryId.HasValue ? all.Where(p => p.CategoryId == categoryId) : all;
-    var paginated = page.HasValue && pageSize.HasValue ? filtered.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value) : filtered;
+    var paginated = page.HasValue && pageSize.HasValue
+        ? filtered.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value)
+        : filtered;
 
     var result = paginated.Select(p => new
     {
@@ -153,67 +206,22 @@ app.MapGet("/api/products", [Authorize(Roles = "Manager,StoreCustomer")] async (
         p.Amount,
         _links = new
         {
-            self = new { href = $"{http.Request.Scheme}://{http.Request.Host}/api/products/{p.Id}" },
-            update = new { href = $"{http.Request.Scheme}://{http.Request.Host}/api/products/{p.Id}", method = "PUT" },
-            delete = new { href = $"{http.Request.Scheme}://{http.Request.Host}/api/products/{p.Id}", method = "DELETE" }
+            self = new { href = GetProductUrl(http, p.Id) },
+            update = new { href = GetProductUrl(http, p.Id), method = "PUT" },
+            delete = new { href = GetProductUrl(http, p.Id), method = "DELETE" }
         }
     });
 
     return Results.Ok(result);
-})
-.WithName("GetProducts")
-.Produces(200);
+}
 
-app.MapPost("/api/products", [Authorize(Roles = "Manager")] async ([FromServices] IProductService service, [FromBody] Product product) =>
-{
-    try
-    {
-        var result = await service.AddAsync(product);
-        return Results.Created($"/api/products/{result.Id}", result);
-    }
-    catch (ArgumentException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-})
-.WithName("CreateProduct")
-.Produces<Product>(201);
+// UrlHelpers.cs
+static string GetCategoryUrl(HttpContext http, int id) =>
+    $"{http.Request.Scheme}://{http.Request.Host}/api/categories/{id}";
 
-app.MapPut("/api/products/{id}", [Authorize(Roles = "Manager")] async ([FromServices] IProductService service, [FromBody] Product product, int id) =>
-{
-    try
-    {
-        product.Id = id;
-        await service.UpdateAsync(product);
-        return Results.NoContent();
-    }
-    catch (ArgumentException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-})
-.WithName("UpdateProduct")
-.Produces(204);
+static string GetProductUrl(HttpContext http, int id) =>
+    $"{http.Request.Scheme}://{http.Request.Host}/api/products/{id}";
 
-app.MapDelete("/api/products/{id}", [Authorize(Roles = "Manager")] async ([FromServices] IProductService service, int id) =>
-{
-    try
-    {
-        var category = await service.GetByIdAsync(id);
-    }
-    catch (KeyNotFoundException ex)
-    {
-        return Results.NotFound(new { error = ex.Message });
-    }
-
-    await service.DeleteAsync(id);
-    return Results.NoContent();
-})
-.WithName("DeleteProduct")
-.Produces(204)
-.Produces(404);
-#endregion
-
-app.Run();
-
-public partial class Program { }
+public partial class Program {
+    protected Program() { }
+}

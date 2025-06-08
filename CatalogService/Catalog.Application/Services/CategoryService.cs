@@ -1,5 +1,5 @@
-﻿using Catalog.Domain.Interfaces;
-using Catalog.Domain.Entities;
+﻿using Catalog.Domain.Entities;
+using Catalog.Domain.Interfaces;
 
 namespace Catalog.Application.Services
 {

@@ -1,11 +1,15 @@
-﻿using CartService.Tests.ApiTests.Helpers;
+﻿using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+
+using CartService.Tests.ApiTests.Helpers;
+
 using Catalog.Domain.Entities;
 using Catalog.Infrastructure.Data;
 using Catalog.Tests.ApiTests.Helpers;
+
 using Microsoft.Extensions.DependencyInjection;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
+
 using Xunit;
 
 namespace Catalog.Tests.ApiTests

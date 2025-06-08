@@ -1,8 +1,11 @@
-﻿using Moq;
-using AppCartService = CartService.Application.Services.CartService;
-using CartService.Application.Interfaces;
+﻿using CartService.Application.Interfaces;
 using CartService.Domain.Entities;
+
 using Microsoft.Extensions.Logging;
+
+using Moq;
+
+using AppCartService = CartService.Application.Services.CartService;
 
 namespace CartService.Tests.Unit
 {

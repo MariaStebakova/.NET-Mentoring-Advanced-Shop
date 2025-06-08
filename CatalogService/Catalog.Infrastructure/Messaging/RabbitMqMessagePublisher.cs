@@ -1,8 +1,10 @@
-﻿using Catalog.Domain.Entities;
-using Catalog.Domain.Interfaces;
-using RabbitMQ.Client;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
+
+using Catalog.Domain.Entities;
+using Catalog.Domain.Interfaces;
+
+using RabbitMQ.Client;
 
 namespace Catalog.Infrastructure.Messaging
 {

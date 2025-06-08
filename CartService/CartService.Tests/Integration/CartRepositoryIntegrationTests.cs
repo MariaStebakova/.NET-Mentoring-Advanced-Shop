@@ -1,13 +1,14 @@
 ﻿using CartService.Application.Interfaces;
 using CartService.Domain.Entities;
 using CartService.Infrastructure.Repositories;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CartService.Tests.Integration
 {
     public class CartRepositoryIntegrationTests : IClassFixture<LiteDbTestFixture>
     {
-        ICartRepository repo;
+        readonly ICartRepository repo;
 
         public CartRepositoryIntegrationTests(LiteDbTestFixture fixture)
         {

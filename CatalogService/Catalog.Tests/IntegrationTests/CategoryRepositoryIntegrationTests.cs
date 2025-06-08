@@ -1,7 +1,9 @@
 ﻿using Catalog.Domain.Entities;
 using Catalog.Infrastructure.Data;
 using Catalog.Infrastructure.Repositories;
+
 using Microsoft.EntityFrameworkCore;
+
 using Xunit;
 
 namespace Catalog.Tests.IntegrationTests

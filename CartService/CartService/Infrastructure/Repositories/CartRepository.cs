@@ -1,6 +1,8 @@
 ﻿using CartService.Application.Interfaces;
 using CartService.Domain.Entities;
+
 using LiteDB;
+
 using Microsoft.Extensions.Logging;
 
 namespace CartService.Infrastructure.Repositories
@@ -16,41 +18,44 @@ namespace CartService.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task<Cart?> GetCartAsync(string cartId)
+        public Task<Cart?> GetCartAsync(string cartId)
         {
             try
             {
                 using var db = new LiteDatabase(_connectionString);
                 var carts = db.GetCollection<Cart>("carts");
-                return carts.FindById(cartId);
+                var cart = carts.FindById(cartId);
+                return Task.FromResult<Cart?>(cart);
             }
             catch (LiteException ex)
             {
-                _logger.LogError(ex, $"Error retrieving cart {cartId}.");
-                throw;
+                _logger.LogError(ex, "Error retrieving cart {cartId}.", cartId);
+                throw new InvalidOperationException($"Failed to retrieve cart with ID '{cartId}'.", ex);
             }
         }
 
-        public async Task SaveCartAsync(Cart cart)
+        public Task SaveCartAsync(Cart cart)
         {
             try
             {
                 using var db = new LiteDatabase(_connectionString);
                 var carts = db.GetCollection<Cart>("carts");
                 carts.Upsert(cart);
+                return Task.CompletedTask;
             }
             catch (LiteException ex)
             {
-                _logger.LogError(ex, $"Error saving cart {cart.Id}.");
-                throw;
+                _logger.LogError(ex, "Error saving cart {CartId}.", cart.Id);
+                throw new InvalidOperationException($"Failed to save cart with ID '{cart.Id}'.", ex);
             }
         }
 
-        public async Task<IEnumerable<Cart>> GetAllCartsAsync()
+        public Task<IEnumerable<Cart>> GetAllCartsAsync()
         {
             using var db = new LiteDatabase(_connectionString);
             var collection = db.GetCollection<Cart>("carts");
-            return collection.FindAll().ToList();
+            var carts = collection.FindAll().ToList();
+            return Task.FromResult<IEnumerable<Cart>>(carts);
         }
     }
 }

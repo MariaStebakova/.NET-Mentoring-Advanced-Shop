@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using CartService.API;
+using CartService.Infrastructure.Messaging;
+
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using CartService.API;
-using CartService.Infrastructure.Messaging;
 
 namespace CartService.Tests.ApiTests.Helpers
 {
@@ -14,11 +15,11 @@ namespace CartService.Tests.ApiTests.Helpers
         {
             builder.ConfigureAppConfiguration((context, config) =>
             {
-                var testSettings = new Dictionary<string, string>
+                var testSettings = new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:CartDatabase"] = $"Filename={TestDBFileName};Connection=shared"
                 };
-                config.AddInMemoryCollection(testSettings);
+                config.AddInMemoryCollection(initialData: testSettings);
             });
 
             builder.ConfigureServices(services =>

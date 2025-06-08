@@ -1,8 +1,10 @@
-﻿using CartService.Application.Interfaces;
+﻿using CartService.API.Controllers.V2;
+using CartService.Application.Interfaces;
 using CartService.Domain.Entities;
-using CartService.API.Controllers.V2;
-using Moq;
+
 using Microsoft.AspNetCore.Mvc;
+
+using Moq;
 
 namespace CartService.Tests.Unit.ContollerTests
 {

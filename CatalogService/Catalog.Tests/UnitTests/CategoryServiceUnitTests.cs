@@ -1,7 +1,9 @@
-﻿using Catalog.Domain.Interfaces;
-using Catalog.Application.Services;
+﻿using Catalog.Application.Services;
 using Catalog.Domain.Entities;
+using Catalog.Domain.Interfaces;
+
 using Moq;
+
 using Xunit;
 
 namespace Catalog.Tests.UnitTests
