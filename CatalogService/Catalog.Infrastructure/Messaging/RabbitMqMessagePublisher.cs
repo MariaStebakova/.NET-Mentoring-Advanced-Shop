@@ -16,7 +16,12 @@ namespace Catalog.Infrastructure.Messaging
 
         public async Task InitializeAsync()
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var hostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
+            if (string.IsNullOrEmpty(hostName))
+            {
+                return;
+            }
+            var factory = new ConnectionFactory { HostName = hostName };
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
 

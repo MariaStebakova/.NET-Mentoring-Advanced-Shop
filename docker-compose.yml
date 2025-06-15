@@ -1,0 +1,83 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/1433' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak-import/import:/opt/keycloak/data/import
+
+  catalog-service:
+    build:
+      context: .
+      dockerfile: CatalogService/Catalog.API/Dockerfile
+    container_name: catalog-service
+    ports:
+      - "5001:80"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      sqlserver:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - SQLSERVER_HOST=sqlserver
+      - SA_PASSWORD=YourStrong!Passw0rd
+      - RABBITMQ_HOST=rabbitmq
+      - KEYCLOAK_HOST=keycloak
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: CartService/CartService.API/Dockerfile
+    container_name: cart-service
+    ports:
+      - "5002:80"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - RABBITMQ_HOST=rabbitmq
+      - KEYCLOAK_HOST=keycloak
+      
+volumes:
+  keycloak_data:
+  sqlserver_data:

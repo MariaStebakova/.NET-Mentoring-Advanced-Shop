@@ -15,8 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.EnvironmentName != "Testing")
 {
+    var rawConnectionString = builder.Configuration.GetConnectionString("CatalogDb") 
+        ?? throw new InvalidOperationException("CatalogDb connection string is missing"); ;
+    var sqlServerHost = builder.Configuration["SQLSERVER_HOST"];
+    var saPassword = builder.Configuration["SA_PASSWORD"];
+    var connectionString = rawConnectionString
+        .Replace("${SQLSERVER_HOST}", sqlServerHost)
+        .Replace("${SA_PASSWORD}", saPassword);
+
     builder.Services.AddDbContext<CatalogDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("CatalogDb")));
+        options.UseSqlServer(connectionString));
 }
 
 var publisher = new RabbitMqMessagePublisher();
@@ -30,7 +38,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddAuthentication().AddJwtBearer("Bearer", options =>
 {
-    options.Authority = "http://localhost:8080/realms/MicroservicesRealm";
+    options.Authority = "http://keycloak:8080/realms/MicroservicesRealm";
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateAudience = false,
@@ -49,6 +57,12 @@ app.UseAuthorization();
 
 MapCategoryEndpoints(app);
 MapProductEndpoints(app);
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    dbContext.Database.Migrate();
+}
 
 await app.RunAsync();
 
@@ -181,6 +195,7 @@ static void MapProductEndpoints(WebApplication app)
     });
 }
 
+[Authorize(Roles = "Manager,StoreCustomer")]
 static async Task<IResult> GetProductsEndpoint(
     [FromServices] IProductService service,
     [FromQuery] int? categoryId,

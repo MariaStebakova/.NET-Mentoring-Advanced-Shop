@@ -29,7 +29,13 @@ namespace CartService.Infrastructure.Messaging
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var hostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
+            if (string.IsNullOrEmpty(hostName))
+            {
+                _logger.LogError("RabbitMQ Host Name is missing. Messaging will not work");
+                return;
+            }
+            var factory = new ConnectionFactory { HostName = hostName };
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
 

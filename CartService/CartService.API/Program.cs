@@ -83,7 +83,7 @@ public class Program
         builder.Services.AddAuthentication(AuthScheme)
             .AddJwtBearer(AuthScheme, options =>
             {
-                options.Authority = "http://localhost:8080/realms/MicroservicesRealm";
+                options.Authority = "http://keycloak:8080/realms/MicroservicesRealm";
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateAudience = false,

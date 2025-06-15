@@ -1,0 +1,50 @@
+{
+  "realm" : "MicroservicesRealm",
+  "users" : [ {
+    "id" : "939f9c26-363b-46d0-aa0e-bbfb2efae1d4",
+    "username" : "customer1",
+    "firstName" : "Customer",
+    "lastName" : "Customer",
+    "email" : "customer1@mail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1750006328170,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "2ca32b3a-5d5f-430c-ac13-fbf7099cd0d8",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1750006501073,
+      "secretData" : "{\"value\":\"mPQ2LPlFCII8HVV5FTWKeYrZ8TJuJqRRzHOkRHEgmsdEhNf0Ot80c8S4W6srFau9w2mwlm7SveprAKbX6hC79g==\",\"salt\":\"SAtCeBBdVWUOTsfLtmoIng==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "StoreCustomer", "default-roles-microservicesrealm" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "6c83da7b-7743-4fc4-94ff-3f4c5032c0c6",
+    "username" : "manager1",
+    "firstName" : "Manager",
+    "lastName" : "Manager",
+    "email" : "manager1@mail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1750006295314,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "cf368392-16db-4f99-9b32-911ba30693b8",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1750006514442,
+      "secretData" : "{\"value\":\"X0OAFs7VczcYoZ+7WCBldgF+VncNfcxhc247D8ele5q3sLAwwr9bwi2FlI3mMyV0idsRVBEFeglTx2wBlGIfBg==\",\"salt\":\"zn/7a77cBzDnSXVOb/swtg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-microservicesrealm", "Manager" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ]
+}
