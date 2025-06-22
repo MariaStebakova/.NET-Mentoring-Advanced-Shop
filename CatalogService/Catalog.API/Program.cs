@@ -193,6 +193,32 @@ static void MapProductEndpoints(WebApplication app)
         await service.DeleteAsync(id);
         return Results.NoContent();
     });
+
+    app.MapGet("/api/products/{id}", [Authorize(Roles = "Manager,StoreCustomer")] async (
+    [FromServices] IProductService service, int id) =>
+    {
+        try
+        {
+            var product = await service.GetByIdAsync(id);
+            return Results.Ok(product);
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound(new { error = $"Product with ID {id} not found." });
+        }
+    });
+
+    app.MapGet("/api/products/{id}/properties", [Authorize(Roles = "Manager,StoreCustomer")] (string id) =>
+    {
+        var properties = new Dictionary<string, string>
+        {
+            { "brand", "Samsung" },
+            { "model", "S10" },
+            { "color", "Black" }
+        };
+
+        return Results.Ok(properties);
+    });
 }
 
 [Authorize(Roles = "Manager,StoreCustomer")]

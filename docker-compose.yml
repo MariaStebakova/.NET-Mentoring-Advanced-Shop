@@ -78,6 +78,20 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - KEYCLOAK_HOST=keycloak
       
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/ApiGateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "5000:80"
+    depends_on:
+      - catalog-service
+      - cart-service
+      - keycloak
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      
 volumes:
   keycloak_data:
   sqlserver_data:

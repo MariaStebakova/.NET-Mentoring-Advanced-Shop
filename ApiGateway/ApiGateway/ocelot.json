@@ -1,0 +1,211 @@
+{
+  "Routes": [
+
+    // === CATALOG SERVICE ROUTES ===
+
+    {
+      "DownstreamPathTemplate": "/api/categories",
+      "UpstreamPathTemplate": "/catalog/categories",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "CacheOptions": {
+        "TtlSeconds": 60
+      },
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/categories",
+      "UpstreamPathTemplate": "/catalog/admin/categories",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RouteClaimsRequirement": {
+        "role": "Manager"
+      },
+      "HttpMethods": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/categories/{id}",
+      "UpstreamPathTemplate": "/catalog/admin/categories/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RouteClaimsRequirement": {
+        "role": "Manager"
+      },
+      "HttpMethods": [ "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/products",
+      "UpstreamPathTemplate": "/catalog/products",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "CacheOptions": {
+        "TtlSeconds": 60
+      },
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/products",
+      "UpstreamPathTemplate": "/catalog/admin/products",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RouteClaimsRequirement": {
+        "role": "Manager"
+      },
+      "HttpMethods": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/products/{id}",
+      "UpstreamPathTemplate": "/catalog/admin/products/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RouteClaimsRequirement": {
+        "role": "Manager"
+      },
+      "HttpMethods": [ "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/products/{id}",
+      "UpstreamPathTemplate": "/catalog/products/{id}",
+      "HttpMethods": [ "GET" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "DownstreamScheme": "http",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/products/{id}/properties",
+      "UpstreamPathTemplate": "/catalog/products/{id}/properties",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "catalog-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+
+    // === CART SERVICE ROUTES ===
+
+    {
+      "DownstreamPathTemplate": "/api/v1/carts/{cartId}",
+      "UpstreamPathTemplate": "/cart/v1/carts/{cartId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "cart-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/carts/{cartId}/items",
+      "UpstreamPathTemplate": "/cart/v1/carts/{cartId}/items",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "cart-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "HttpMethods": [ "POST", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v2/carts/{cartId}/items",
+      "UpstreamPathTemplate": "/cart/v2/carts/{cartId}/items",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "cart-service",
+          "Port": 80
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "HttpMethods": [ "GET", "POST", "DELETE" ]
+    }
+
+    //// === AGGREGATED PRODUCT ROUTE ===
+
+    //{
+    //  "DownstreamPathTemplate": "/api/products/{id}",
+    //  "UpstreamPathTemplate": "/catalog/aggregated/products/{id}",
+    //  "DownstreamScheme": "http",
+    //  "DownstreamHostAndPorts": [
+    //    {
+    //      "Host": "catalog-service",
+    //      "Port": 80
+    //    }
+    //  ],
+    //  "Aggregator": "ProductWithPropertiesAggregator",
+    //  "AuthenticationOptions": {
+    //    "AuthenticationProviderKey": "Bearer"
+    //  }
+    //}
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000",
+    "RequestIdKey": "OcRequestId"
+  }
+}
